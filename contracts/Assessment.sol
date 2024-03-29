@@ -1,18 +1,32 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-//import "hardhat/console.sol";
-
 contract Assessment {
     address payable public owner;
     uint256 public balance;
 
     event Deposit(uint256 amount);
     event Withdraw(uint256 amount);
+    event Redeem(string itemName);
+
+    struct Nft {
+        string name;
+        uint256 price;
+    }
+
+    mapping(uint256 => Nft) public nftItems;
 
     constructor(uint initBalance) payable {
         owner = payable(msg.sender);
         balance = initBalance;
+        storeNftItem(0, "Helmet", 50);
+        storeNftItem(1, "Wheel", 100);
+        storeNftItem(2, "Handle Bar", 200);
+        storeNftItem(3, "Visor", 250);
+    }
+
+    function storeNftItem(uint256 itemId, string memory itemName, uint256 itemPrice) private {
+        nftItems[itemId] = Nft(itemName, itemPrice);
     }
 
     function getBalance() public view returns(uint256){
@@ -56,5 +70,16 @@ contract Assessment {
 
         // emit the event
         emit Withdraw(_withdrawAmount);
+    }
+
+    function redeem(uint256 itemId) public {
+        require(nftItems[itemId].price > 0, "Invalid item ID.");
+        require(balance >= nftItems[itemId].price, "Insufficient balance for redemption.");
+
+        // Burn tokens
+        balance -= nftItems[itemId].price;
+
+        // Emit event for redemption
+        emit Redeem(nftItems[itemId].name);
     }
 }
